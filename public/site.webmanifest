@@ -1,0 +1,10 @@
+{
+    "name": "GhostSwap Finance",
+    "short_name": "GhostSwap",
+    "icons": [
+
+    ],
+    "theme_color": "#0d0415",
+    "background_color": "#0d0415",
+    "display": "standalone"
+}

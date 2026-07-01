@@ -1,0 +1,19 @@
+{
+  "name": "GhostSwap",
+  "short_name": "GhostSwap",
+  "lang": "en",
+  "description": "The best platform for trading NFTs on BNBChain.",
+  "background_color": "#0D0415",
+  "theme_color": "#F338C3",
+  "dir": "ltr",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "splash_pages": null,
+  "prefer_related_applications": false,
+  "iconPath": "logo.png",
+  "icons": [
+
+  ]
+}
