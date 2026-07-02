@@ -89,7 +89,7 @@ const PriceGraph = ({ poolDetails, price = null, delta = null }) => {
   }, [selectedSales])
 
   return (
-    <div id="price-graph" className="w-full p-3 rounded-md bg-dark-800">
+    <div id="price-graph" className="p-3 w-full rounded-md bg-dark-800">
       <div
         id="heading"
         style={{ WebkitTextStrokeWidth: '.02rem' }}
@@ -98,11 +98,11 @@ const PriceGraph = ({ poolDetails, price = null, delta = null }) => {
         Price Graph
       </div>
       <div className="flex flex-col gap-2">
-        <div id="graph-controls-flex-container" className="flex flex-wrap justify-between gap-2">
+        <div id="graph-controls-flex-container" className="flex flex-wrap gap-2 justify-between">
           {poolDetails.poolType !== 'BUY' && (
             <div id="graph-controls-sell" className="min-w-[45%] flex-grow p-3 rounded-md bg-dark-900 text-[20px]">
               <div className="w-full text-center">Buying {selectedPurchases} NFTs...</div>
-              <div id="slider-group" className="flex items-center justify-center">
+              <div id="slider-group" className="flex justify-center items-center">
                 <div id="current-slider-value">0</div>
                 <input
                   type="range"
@@ -121,7 +121,7 @@ const PriceGraph = ({ poolDetails, price = null, delta = null }) => {
                   {parseInt(getMaxBought(poolDetails.balanceNBT, startPrice, deltaValue, poolDetails.bondingCurveType))}
                 </div>
               </div>
-              <div id="result" className="flex items-center justify-center">
+              <div id="result" className="flex justify-center items-center">
                 <div>will cost this pool</div>
                 <div id="value" className="rounded-md bg-black p-[.375rem] px-3 mx-1">
                   {parseFloat((+partialPurchasePrice).toFixed(6))}
@@ -133,7 +133,7 @@ const PriceGraph = ({ poolDetails, price = null, delta = null }) => {
           {poolDetails.poolType !== 'SELL' && (
             <div id="graph-controls-buy" className="min-w-[45%] flex-grow p-3 rounded-md bg-dark-900 text-[20px]">
               <div className="w-full text-center">Selling {selectedSales} NFTs...</div>
-              <div id="slider-group" className="flex items-center justify-center">
+              <div id="slider-group" className="flex justify-center items-center">
                 <div id="current-slider-value">0</div>
                 <input
                   type="range"
@@ -147,7 +147,7 @@ const PriceGraph = ({ poolDetails, price = null, delta = null }) => {
                 ></input>
                 <div id="slider-max-value">{poolDetails.nftBalance}</div>
               </div>
-              <div id="result" className="flex items-center justify-center">
+              <div id="result" className="flex justify-center items-center">
                 <div>will earn this pool</div>
                 <div id="value" className="rounded-md bg-black p-[.375rem] px-3 mx-1">
                   {parseFloat((+partialSalesPrice).toFixed(6))}
@@ -172,7 +172,7 @@ const PriceGraph = ({ poolDetails, price = null, delta = null }) => {
           )}
           {poolDetails.poolType === 'SELL' && poolDetails.bondingCurveType === 'EXPONENTIAL' && (
             <PoolPriceChart
-              selectedPoints={selectedSales}
+              selectedPoints={selectedPurchases}
               amount={parseInt(
                 getMaxBought(poolDetails.balanceNBT, startPrice, deltaValue, poolDetails.bondingCurveType)
               )}
@@ -186,7 +186,7 @@ const PriceGraph = ({ poolDetails, price = null, delta = null }) => {
           )}
           {poolDetails.poolType === 'BUY' && poolDetails.bondingCurveType === 'LINEAR' && (
             <PoolPriceChart
-              selectedPoints={selectedPurchases}
+              selectedPoints={selectedSales}
               amount={poolDetails.nftBalance}
               spotPrices={getSpotPricesSell(
                 (+Web3.utils.fromWei(startPrice, 'ether')).toFixed(6),

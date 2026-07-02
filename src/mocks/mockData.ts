@@ -212,14 +212,15 @@ export const POOLS = {
     [9,10,11,12,13,14,15].map(makeLgAsset),
   ),
   // Little Ghosts – SELL pool: offers 0.033 BNB per NFT (users sell to it)
+  // balance=0.2 keeps getMaxBought≈6, so prices (0.033→0.008) stay above MIN_TRADE_PRICE
   [POOL.LG_SELL_1]: makePool(
-    POOL.LG_SELL_1, LG_ADDRESS, 'SELL', 0, 0.033, 2.5,
+    POOL.LG_SELL_1, LG_ADDRESS, 'SELL', 0, 0.033, 0.2,
     [],
   ),
-  // Little Ghosts – TRADE pool: 5 NFTs + BNB balance
+  // Little Ghosts – TRADE pool: 5 NFTs + BNB balance, 8% exponential delta
   [POOL.LG_TRADE]: makePool(
     POOL.LG_TRADE, LG_ADDRESS, 'BUY_AND_SELL', 0.048, 0.036, 1.2,
-    [16,17,18,19,20].map(makeLgAsset), 'EXPONENTIAL', 1.008,
+    [16,17,18,19,20].map(makeLgAsset), 'EXPONENTIAL', 1.08,
   ),
   // Ecto Skeletons – BUY pool: 6 NFTs at 0.13 BNB
   [POOL.ES_BUY_1]: makePool(
