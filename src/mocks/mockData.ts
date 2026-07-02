@@ -32,7 +32,14 @@ const POOL = {
 }
 
 // ── BNB price helpers (BigNumber-style Wei strings) ───────────────────────────
-const toWei = (bnb: number) => String(Math.floor(bnb * 1e18))
+// Uses BigInt arithmetic to avoid scientific notation for large volumes.
+// JavaScript Numbers lose precision above ~9 BNB × 1e18, so we split into
+// whole and fractional parts before converting to BigInt.
+const toWei = (bnb: number): string => {
+  const whole = Math.floor(bnb)
+  const frac = Math.round((bnb - whole) * 1e9) // 9 decimal places
+  return (BigInt(whole) * BigInt('1000000000000000000') + BigInt(frac) * BigInt('1000000000')).toString()
+}
 
 // ── Little Ghosts trait data (from backend metadata file) ─────────────────────
 export const LG_TRAIT_TYPES = ['Background', 'Body', 'Eyes', 'Hat', 'Item', 'Mouth', 'Prop']
@@ -167,7 +174,7 @@ const makePool = (
   bondingCurveType: 'LINEAR' | 'EXPONENTIAL' = 'LINEAR',
   deltaBnb: number = 0.005,
   feePct: number = 0,
-  owner: string = '0xdemo0000000000000000000000000000000000001',
+  owner: string = '0xDeAd000000000000000000000000000000000001',
 ) => ({
   assetRecipientAddress: owner,
   balanceNBT: toWei(balanceBnb),
@@ -212,7 +219,7 @@ export const POOLS = {
   // Little Ghosts – TRADE pool: 5 NFTs + BNB balance
   [POOL.LG_TRADE]: makePool(
     POOL.LG_TRADE, LG_ADDRESS, 'BUY_AND_SELL', 0.048, 0.036, 1.2,
-    [16,17,18,19,20].map(makeLgAsset), 'EXPONENTIAL', 0.008,
+    [16,17,18,19,20].map(makeLgAsset), 'EXPONENTIAL', 1.008,
   ),
   // Ecto Skeletons – BUY pool: 6 NFTs at 0.13 BNB
   [POOL.ES_BUY_1]: makePool(
@@ -273,7 +280,7 @@ const makeCollectionStats = (
 export const COLLECTION_STATS: Record<string, any> = {
   [LG_ADDRESS]: makeCollectionStats(
     LG_ADDRESS, 'Little Ghosts',
-    'https://cdn.nftkey.app/images/collections/collection-thumbnail/littleghosts.png',
+    lgImg(9990),
     0.04, 0.033, 3.7, 20, 244, 50.98,
   ),
   [ES_ADDRESS]: makeCollectionStats(
@@ -293,7 +300,7 @@ export const COLLECTION_TRADES = [
   {
     address: LG_ADDRESS,
     name: 'Little Ghosts',
-    avatar: 'https://cdn.nftkey.app/images/collections/collection-thumbnail/littleghosts.png',
+    avatar: lgImg(9990),
     volumeBNB: 183.4,    volumeUSD: 88641,
     trades: 1284,
     volumeBNB_last24h: 1.2,   volumeUSD_last24h: 580,   trades_last24h: 8,
@@ -342,7 +349,7 @@ export const COLLECTION_DETAILS: Record<string, any> = {
     description:
       'LittleGhosts is a collection of 10,000 animated NFTs on the Binance Smart Chain. ' +
       'Each ghost is unique — combining a play-to-earn MMORPG with on-chain provable rarity.',
-    avatar: 'https://cdn.nftkey.app/images/collections/collection-thumbnail/littleghosts.png',
+    avatar: lgImg(9990),
     banner: `${LG_CDN}/banner-lg.png`,
     status: 'default',
     website: 'https://littleghosts.com',
@@ -422,7 +429,7 @@ export const STAKING_POOLS = [
     id: '1',
     collectionAddress: LG_ADDRESS,
     collectionName: 'Little Ghosts',
-    collectionAvatar: 'https://cdn.nftkey.app/images/collections/collection-thumbnail/littleghosts.png',
+    collectionAvatar: lgImg(9990),
     rewardTokenAddress: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
     rewardTokenSymbol: 'BNB',
     totalStaked: 482,
@@ -462,7 +469,7 @@ const makeSwapEvent = (
   exchangeAddress: '0x180898e3C779e22c25c35A78BDB33b98a10e9be4',
   id: `event_${i}`,
   logIndex: i % 8,
-  maker: '0xdemo0000000000000000000000000000000000001',
+  maker: '0xDeAd000000000000000000000000000000000001',
   networkId: 56,
   poolAddress,
   poolType: 'BUY',
