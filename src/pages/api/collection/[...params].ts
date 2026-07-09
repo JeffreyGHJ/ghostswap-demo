@@ -5,6 +5,7 @@ import {
   COLLECTION_STATS,
   POOLS_BY_COLLECTION,
   STAKING_POOLS,
+  DEMO_OWNED_NFTS,
   getNftShort,
   resolveImageUrl,
   LG_ADDRESS,
@@ -86,9 +87,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // ── GET /api/collection/account/:address/moralis/assets ──────────────────
+  // Inventory page: return the demo wallet's full NFT holdings across all collections.
   if (params.length === 4 && params[0] === 'account' && params[2] === 'moralis' && params[3] === 'assets') {
-    // Return empty — no real wallet holdings in demo
-    return res.status(200).json([])
+    return res.status(200).json(DEMO_OWNED_NFTS)
   }
 
   // ── GET /api/collection/account/:address/moralis/collections ─────────────
@@ -97,6 +98,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // ── GET /api/collection/account/:address/moralis/assets/collection/:collAddr/:chainId ──
+  // Collection sell-tab: return only the NFTs that belong to the requested collection.
   if (
     params.length >= 6 &&
     params[0] === 'account' &&
@@ -104,7 +106,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     params[3] === 'assets' &&
     params[4] === 'collection'
   ) {
-    return res.status(200).json([])
+    const collAddr = norm(params[5])
+    const ownedInCollection = DEMO_OWNED_NFTS.filter((nft) => norm(nft.tokenAddress) === collAddr)
+    return res.status(200).json(ownedInCollection)
   }
 
   // ── Fallback ──────────────────────────────────────────────────────────────

@@ -469,6 +469,20 @@ export function getPsNftShort(tokenId: string | number) {
   }
 }
 
+// ── Demo wallet inventory ─────────────────────────────────────────────────────
+// Returned for ANY connected wallet so visitors can explore the sell tab and
+// inventory page without needing real on-chain holdings.
+// Shape mirrors a Moralis NFT record — the useCollectionApi hook enriches these
+// with rank/rarity/buff data from the local little-ghosts-ranks JSON.
+const DEMO_GHOST_IDS = [44, 89, 451, 503, 2487, 4321, 4444, 5782, 7253, 8644, 9241]
+
+export const DEMO_OWNED_NFTS = DEMO_GHOST_IDS.map((id) => ({
+  name: `LittleGhosts #${id}`,
+  symbol: 'LG',
+  tokenAddress: LG_ADDRESS,
+  tokenId: String(id),
+}))
+
 // ── Staking pools (for /api/collection/staking) ───────────────────────────────
 export const STAKING_POOLS = [
   {
