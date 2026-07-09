@@ -497,8 +497,13 @@ export const STAKING_POOLS = [
   },
 ]
 
-// ── Pool events (trade history for charts) ────────────────────────────────────
+// ── Pool events (trade history for charts + activity tab) ────────────────────
 const now = Math.floor(Date.now() / 1000)
+
+// Swap events (users buying NFTs out of a pool)
+// eventType must match the SCREAMING_SNAKE_CASE strings the ActivityTab filters on.
+// data.nftsTransfered must be an array of { nftTokenId } objects (note: one-'r' typo is intentional — matches component code).
+// data.amountT is the total BNB paid/received.
 const makeSwapEvent = (
   i: number,
   collectionAddress: string,
@@ -511,7 +516,7 @@ const makeSwapEvent = (
   blockNumber: 28000000 + i,
   collectionAddress,
   collectionId: `${collectionAddress}:56`,
-  eventType: 'SwapNftOutPool',
+  eventType: 'SWAP_NFT_OUT_POOL',
   exchangeAddress: '0x180898e3C779e22c25c35A78BDB33b98a10e9be4',
   id: `event_${i}`,
   logIndex: i % 8,
@@ -525,15 +530,51 @@ const makeSwapEvent = (
   transactionIndex: i % 4,
   data: {
     __typename: 'SwapNftOutPoolEventData',
-    nftTokenIds: [String(tokenId)],
-    amountNBT: toWei(priceBnb),
-    protocolFeeAmountNBT: toWei(priceBnb * 0.005),
+    nftsTransfered: [{ nftTokenId: String(tokenId) }],
+    amountT: toWei(priceBnb),
     isQuote: false,
   },
 })
 
+// Pool-creation events shown on the Activity tab when "Show new pools" is toggled on.
+// Pulls all pricing/balance data directly from the already-built pool object so the
+// expanded card mirrors what the pool builder would have emitted on-chain.
+const makeNewPoolEvent = (i: number, pool: any, secondsAgo: number) => ({
+  blockHash: `0xnp${i.toString(16).padStart(10, '0')}`,
+  blockNumber: 27800000 + i * 100,
+  collectionAddress: pool.collectionAddress,
+  collectionId: `${pool.collectionAddress}:56`,
+  eventType: 'NEW_POOL',
+  exchangeAddress: pool.exchangeAddress,
+  id: `newpool_${i}`,
+  logIndex: 0,
+  maker: pool.owner,
+  networkId: 56,
+  poolAddress: pool.poolAddress,
+  poolType: pool.poolType,
+  timestamp: now - secondsAgo,
+  tokenAddress: pool.tokenAddress,
+  transactionHash: `0xnpTx${i.toString(16).padStart(8, '0')}`,
+  transactionIndex: 0,
+  data: {
+    __typename: 'NewPoolEventData',
+    tokenBalanceT: pool.balanceNBT,
+    nftTokenBalance: pool.nftBalance,
+    startPriceT: pool.spotPriceNBT,
+    buyPriceT: pool.floorNBT,
+    sellPriceT: pool.offerNBT,
+    bondingCurveType: pool.bondingCurveType,
+    delta: pool.delta,
+    feeAmountT: pool.fee,
+  },
+})
+
+// Pool creation timestamps — spread across a 90-day window ending 1 hour ago.
+// LG pools are interleaved with ES/PS to give the activity feed a realistic feel.
+// Seconds ago from now:  90d=7776000  80d=6912000  ...  1h=3600
 export const POOL_EVENTS: Record<string, any[]> = {
   [LG_ADDRESS]: [
+    // swap activity (recent, in minutes-ago)
     makeSwapEvent(1, LG_ADDRESS, POOL.LG_BUY_1, 0, 0.041, 15),
     makeSwapEvent(2, LG_ADDRESS, POOL.LG_BUY_1, 5, 0.041, 45),
     makeSwapEvent(3, LG_ADDRESS, POOL.LG_BUY_2, 10, 0.055, 90),
@@ -544,17 +585,32 @@ export const POOL_EVENTS: Record<string, any[]> = {
     makeSwapEvent(8, LG_ADDRESS, POOL.LG_BUY_1, 4, 0.04, 1080),
     makeSwapEvent(9, LG_ADDRESS, POOL.LG_TRADE_2, 18, 0.049, 1440),
     makeSwapEvent(10, LG_ADDRESS, POOL.LG_BUY_2, 12, 0.055, 2160),
+    // pool creation events (spread across last 90 days, oldest first)
+    makeNewPoolEvent(1,  POOLS[POOL.LG_BUY_1],   90 * 86400),  // 90 days ago
+    makeNewPoolEvent(2,  POOLS[POOL.LG_SELL_1],   80 * 86400),  // 80 days ago
+    makeNewPoolEvent(3,  POOLS[POOL.LG_BUY_2],    68 * 86400),  // 68 days ago
+    makeNewPoolEvent(4,  POOLS[POOL.LG_TRADE_1],  58 * 86400),  // 58 days ago
+    makeNewPoolEvent(5,  POOLS[POOL.LG_SELL_2],   46 * 86400),  // 46 days ago
+    makeNewPoolEvent(6,  POOLS[POOL.LG_BUY_3],    34 * 86400),  // 34 days ago
+    makeNewPoolEvent(7,  POOLS[POOL.LG_BUY_4],    22 * 86400),  // 22 days ago
+    makeNewPoolEvent(8,  POOLS[POOL.LG_TRADE_2],  12 * 86400),  // 12 days ago
+    makeNewPoolEvent(9,  POOLS[POOL.LG_TRADE_3],   5 * 86400),  //  5 days ago
+    makeNewPoolEvent(10, POOLS[POOL.LG_TRADE_4],   3600),        //  1 hour ago
   ],
   [ES_ADDRESS]: [
     makeSwapEvent(20, ES_ADDRESS, POOL.ES_BUY_1, 1, 0.13, 30),
     makeSwapEvent(21, ES_ADDRESS, POOL.ES_BUY_1, 9, 0.13, 240),
     makeSwapEvent(22, ES_ADDRESS, POOL.ES_BUY_1, 21, 0.14, 720),
     makeSwapEvent(23, ES_ADDRESS, POOL.ES_BUY_1, 42, 0.13, 1440),
+    makeNewPoolEvent(11, POOLS[POOL.ES_BUY_1],  53 * 86400),  // 53 days ago
+    makeNewPoolEvent(12, POOLS[POOL.ES_SELL_1], 28 * 86400),  // 28 days ago
   ],
   [PS_ADDRESS]: [
     makeSwapEvent(30, PS_ADDRESS, POOL.PS_BUY_1, 0, 0.89, 60),
     makeSwapEvent(31, PS_ADDRESS, POOL.PS_BUY_1, 1, 0.88, 300),
     makeSwapEvent(32, PS_ADDRESS, POOL.PS_BUY_1, 2, 0.9, 900),
+    makeNewPoolEvent(13, POOLS[POOL.PS_BUY_1],  43 * 86400),  // 43 days ago
+    makeNewPoolEvent(14, POOLS[POOL.PS_SELL_1], 18 * 86400),  // 18 days ago
   ],
 }
 

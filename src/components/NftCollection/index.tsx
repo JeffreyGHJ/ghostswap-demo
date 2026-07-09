@@ -116,8 +116,11 @@ const NftCollection = () => {
     fetchNftsOwnedInCollection(account, address, setAssets, chainId)
   }, [account, address, chainId])
 
-  // 1: Get details, activity, stats, and all liquidity pools for this collection address (on mount)
+  // 1: Get details, activity, stats, and all liquidity pools for this collection address.
+  // Depends on `address` so it re-runs once the Next.js router is hydrated after a hard
+  // refresh (router.query is undefined on the first SSR render, so we guard and wait).
   useEffect(() => {
+    if (!address) return
     const cancelSource = axios.CancelToken.source()
     fetchCollectionDetailsShort(address, setDetails)
     getNftPoolCollection(address, setStats, cancelSource)
@@ -125,7 +128,7 @@ const NftCollection = () => {
     getAllNftPoolEvents(address, setCollectionActivity, filter, cancelSource)
     getNftPoolsByCollectionAndExchange(address, setLiqPools, cancelSource)
     return () => cancelSource.cancel()
-  }, [])
+  }, [address])
 
   // 2: Get all nfts that can be bought from the liqPools
   useEffect(() => {
