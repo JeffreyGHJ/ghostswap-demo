@@ -21,13 +21,19 @@ const esImg = (id: number) =>
 
 // ── Pool addresses (realistic-looking fake addresses) ─────────────────────────
 const POOL = {
-  LG_BUY_1:  '0x3a2f1c0b9e4d7f2a6c8e9012b3c4d5e6f7a8b9c0',
-  LG_BUY_2:  '0x1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c',
-  LG_SELL_1: '0x9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e',
-  LG_TRADE:  '0x5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b',
-  ES_BUY_1:  '0x2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f',
+  LG_BUY_1:   '0x3a2f1c0b9e4d7f2a6c8e9012b3c4d5e6f7a8b9c0',
+  LG_BUY_2:   '0x1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c',
+  LG_BUY_3:   '0xce1d2a3b4c5e6f7a8b9c0d1e2f3a4b5c6d7e8f09',
+  LG_BUY_4:   '0xfa2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f0a1b',
+  LG_SELL_1:  '0x9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e',
+  LG_SELL_2:  '0xb3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f0a1b2c3',
+  LG_TRADE_1: '0x5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b',
+  LG_TRADE_2: '0xe4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3',
+  LG_TRADE_3: '0xa5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4',
+  LG_TRADE_4: '0xf6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5',
+  ES_BUY_1: '0x2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f',
   ES_SELL_1: '0x8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d',
-  PS_BUY_1:  '0x4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a',
+  PS_BUY_1: '0x4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a',
   PS_SELL_1: '0x6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e',
 }
 
@@ -41,86 +47,27 @@ const toWei = (bnb: number): string => {
   return (BigInt(whole) * BigInt('1000000000000000000') + BigInt(frac) * BigInt('1000000000')).toString()
 }
 
-// ── Little Ghosts trait data (from backend metadata file) ─────────────────────
-export const LG_TRAIT_TYPES = ['Background', 'Body', 'Eyes', 'Hat', 'Item', 'Mouth', 'Prop']
+// ── Little Ghosts trait lookup (from on-chain metadata JSON) ──────────────────
+// The JSON's tokens array is sorted by rarity rank, not token ID, so we extract
+// each NFT's real ID from its name field and build a proper tokenId → attributes
+// map at module load time. This runs server-side only (API routes).
+import lgTraitsJson from '../constants/little-ghost-traits/0x98f606a4cdde68b9f68732d21fb9ba8b5510ee48.json'
 
-export const LG_TRAIT_VALUES = [
-  // 0 – Background
-  ['Asagi','Cool magenta','Cyan','Dark mustard','Emperor','Epic blue','Foggy grey','Ghost green',
-   'Gravel grey','Haunted Plum','Haunted plum','Lava red','Maximum yellow','Midnight blue',
-   'Midnight green','Moss green','Pale berry','Pale orange','Pumpkin orange','Punk Blue',
-   'Punk blue','Razzmic berry','Silk blue','Silk bulk','Slate blue','Wageningen green'],
-  // 1 – Body
-  ['Alien Ghost','Baby Ghost Alien','Beetle Ghost','Black ghost','Blue Alien Ghost','Blue Ghost',
-   'Dark Purple Ghost','Doge Ghost','Friendly Ghost','Ghost Rick','Ghostdu','Ghostface Ghost',
-   'Ghostie Wan','Green Glowing Ghost','Grey Ghost','Hades','Lime Green Ghost','Pancake Ghost',
-   'Purple Ghost','Red Ghost','Scary Ghost','Shiba Ghost','Super Shy Ghost','Transparent Ghost',
-   'White Ghost','White ghost'],
-  // 2 – Eyes
-  ['Alien Eyes','Anime Black Eyes','Anime Red Eyes','Baby Ghost Alien Eyes','Beetle Eyes',
-   'Bubble Eyes','Cross Eyes','Evil Eyes','Friendly Eyes','Ghost Sith Eyes','Ghostdu Eyes',
-   'Ghostface Eyes','Ghostie Wan Eyes','Girly Eyes','Green Ghost Eyes','Hades','Happy Eyes',
-   'Heart Eyes','Jawa Eyes','Money Sign Eyes','Money Sign eyes','Pancake Eyes','Rick Eyes',
-   'Right Look','Scary Eyes','Squint Eyes','Stare Eyes','Stoned Eyes','Super Shy Eyes',
-   'Uninterested Look','Vampire Eyes','Vampire eyes'],
-  // 3 – Hat
-  ['Baby Ghost Alien Hoodie','Backwards Red Hat','Beetle Hair','Black Backwards ERTH Cap',
-   'Black Backwards ERTH Hat','Black Backwards Hat','Black Baseball Cap','Black Beanie',
-   'Black ERTH Baseball Cap','Black Hoodie','Blue Flames','Blue Wizard Hat','Construction Hat',
-   'Ghost Sith Hoodie','Ghostdu Hoodie','Ghostface Hoodie','Ghostie Wan Hoodie',
-   'Green Backwards Hat','Green Baseball Cap','Green Beanie','Hoodie','Jawa Hoodie','None',
-   'Orange Beanie','Pancake Ears','Purple Backwards Hat','Purple Baseball Cap','Purple Beanie',
-   'Purple Wizard Hat','Red Backwards Hat','Red Baseball Cap','Rick Hair','Santa Hat',
-   'Super Shy Hoodie','Teal Beanie','Top Hat'],
-  // 4 – Item
-  ['Bloody Knife','Blue Lightsaber','Bnb Coin','Dripping Soul Knife','ERTH','Green Lightsaber',
-   'Hanging Chain','Jawa Gun','Knife','Money','None','Purple Lightsaber','Red Lightsaber',
-   'Ricks Laser Gun','Trick Or Treat Bag'],
-  // 5 – Mouth
-  [' Scary Mouth',' Scary Tounge Flick','Alien Mouth','Baby Ghost Alien Mouth','Beetle Mouth',
-   'Big Smile','Cigarette','Cigarette Smoke','Face Mask','Friendly Mouth','Frown',
-   'Ghost Sith Smile','Ghostdu Mouth','Ghostface Mouth','Ghostie Wan Mouth','Green Ghost Mouth',
-   'Grill','Hades','None','Rick Mouth','Smirk','Stiches','Straight','Super Shy Mouth',
-   'Vampire Teeth','Vampire teeth','Wiggle Mouth'],
-  // 6 – Prop
-  ['3D Glasses','Blue Lasers','Cigarette','Earrings','Eye Patch','Gold Chain','Green Lasers',
-   'Halo','Heart Bubble','Horns','None','Red Lasers','Silver Chain','Sunglasses','Underworld Robe'],
-]
+type LgAttribute = { trait_type: string; value: string }
+const _lgTypes: string[] = lgTraitsJson.traitTypes as string[]
+const _lgValues: string[][] = lgTraitsJson.traitValues as unknown as string[][]
+const _lgByTokenId = new Map<number, LgAttribute[]>()
 
-// ── Little Ghosts: 30 tokens [id, traitIndices] ───────────────────────────────
-// traitIndices = [Background, Body, Eyes, Hat, Item, Mouth, Prop]
-const LG_TOKENS: [number, number[]][] = [
-  [0,    [15, 17, 17, 20, 10, 10, 10]],
-  [2,    [12,  6,  1, 22, 10,  5, 13]],
-  [3,    [11, 24, 16, 34, 10, 20, 10]],
-  [4,    [ 0, 24, 16, 18, 10, 26,  0]],
-  [5,    [23, 16,  1, 22, 10,  8, 10]],
-  [6,    [16,  5,  6,  7, 10, 16, 10]],
-  [7,    [24, 24,  6, 30, 10, 10, 10]],
-  [8,    [14, 24, 17, 18, 10,  5, 12]],
-  [9,    [25, 19,  6, 29, 10,  5, 10]],
-  [10,   [10, 24, 27, 17, 10, 20,  3]],
-  [11,   [ 5,  6, 16,  7, 10, 10,  8]],
-  [12,   [ 1, 18, 17,  5, 10, 22, 10]],
-  [13,   [ 0, 24, 17, 18, 10, 22, 11]],
-  [14,   [ 0, 24,  1,  5, 10, 22, 10]],
-  [15,   [21, 24, 23, 30, 10, 26,  3]],
-  [16,   [15, 19,  5, 22, 10,  5,  3]],
-  [17,   [24, 24, 16, 34, 10, 20,  8]],
-  [18,   [24, 24, 26, 22, 10, 20,  8]],
-  [19,   [15, 24,  6, 18, 10,  8, 10]],
-  [20,   [21, 14, 13, 32, 10, 26, 13]],
-  [21,   [ 5, 14, 17, 22, 10, 22,  3]],
-  [22,   [10, 24, 19, 27, 10, 22,  4]],
-  [23,   [14, 16, 13, 22, 10,  5,  4]],
-  [24,   [ 0,  5, 29, 34, 10, 26,  8]],
-  [25,   [ 5, 24, 17, 26, 10, 20,  4]],
-  [26,   [15, 14, 23, 22, 10, 22, 11]],
-  [27,   [11, 24, 16, 29, 10, 20, 12]],
-  [28,   [12, 14, 27, 22, 10, 20, 13]],
-  [29,   [12, 24,  6, 19, 10, 10,  3]],
-  [3355, [20, 25, 26, 22,  4, 20,  7]],
-]
+for (const token of lgTraitsJson.tokens as unknown as [string, string, string, number[]][]) {
+  const m = token[1].match(/#(\d+)$/)
+  if (!m) continue
+  const nftId = parseInt(m[1])
+  const indices = token[3]
+  _lgByTokenId.set(
+    nftId,
+    _lgTypes.map((type, i) => ({ trait_type: type, value: _lgValues[i][indices[i]] }))
+  )
+}
 
 // ── NFT asset shape used inside pool.nftAssets ────────────────────────────────
 const makeLgAsset = (tokenId: number) => ({
@@ -174,7 +121,7 @@ const makePool = (
   bondingCurveType: 'LINEAR' | 'EXPONENTIAL' = 'LINEAR',
   deltaBnb: number = 0.005,
   feePct: number = 0,
-  owner: string = '0xDeAd000000000000000000000000000000000001',
+  owner: string = '0xDeAd000000000000000000000000000000000001'
 ) => ({
   assetRecipientAddress: owner,
   balanceNBT: toWei(balanceBnb),
@@ -202,51 +149,116 @@ const makePool = (
 // ── Pools ─────────────────────────────────────────────────────────────────────
 export const POOLS = {
   // Little Ghosts – BUY pool 1: 8 NFTs for sale at 0.04 BNB
-  [POOL.LG_BUY_1]: makePool(
-    POOL.LG_BUY_1, LG_ADDRESS, 'BUY', 0.04, 0, 0,
-    [0,2,3,4,5,6,7,8].map(makeLgAsset),
-  ),
+  [POOL.LG_BUY_1]: makePool(POOL.LG_BUY_1, LG_ADDRESS, 'BUY', 0.04, 0, 0, [0, 2, 3, 4, 5, 6, 7, 8].map(makeLgAsset)),
   // Little Ghosts – BUY pool 2: 7 NFTs for sale at 0.055 BNB
   [POOL.LG_BUY_2]: makePool(
-    POOL.LG_BUY_2, LG_ADDRESS, 'BUY', 0.055, 0, 0,
-    [9,10,11,12,13,14,15].map(makeLgAsset),
+    POOL.LG_BUY_2,
+    LG_ADDRESS,
+    'BUY',
+    0.055,
+    0,
+    0,
+    [9, 10, 11, 12, 13, 14, 15].map(makeLgAsset)
+  ),
+  // Little Ghosts – BUY pool 3:
+  [POOL.LG_BUY_3]: makePool(
+    POOL.LG_BUY_3,
+    LG_ADDRESS,
+    'BUY',
+    0.2,
+    0,
+    0,
+    [21, 32, 43, 5470, 65, 76, 87, 7750].map(makeLgAsset)
+  ),
+  // Little Ghosts – BUY pool 4:
+  [POOL.LG_BUY_4]: makePool(
+    POOL.LG_BUY_4,
+    LG_ADDRESS,
+    'BUY',
+    0.13,
+    0,
+    0,
+    [24, 1361, 48, 3916, 1169, 276, 487, 5010].map(makeLgAsset)
   ),
   // Little Ghosts – SELL pool: offers 0.033 BNB per NFT (users sell to it)
   // balance=0.2 keeps getMaxBought≈6, so prices (0.033→0.008) stay above MIN_TRADE_PRICE
-  [POOL.LG_SELL_1]: makePool(
-    POOL.LG_SELL_1, LG_ADDRESS, 'SELL', 0, 0.033, 0.2,
-    [],
-  ),
+  [POOL.LG_SELL_1]: makePool(POOL.LG_SELL_1, LG_ADDRESS, 'SELL', 0, 0.033, 0.2, []),
+  // Little Ghosts – SELL pool: offers 0.033 BNB per NFT (users sell to it)
+  // balance=0.2 keeps getMaxBought≈6, so prices (0.033→0.008) stay above MIN_TRADE_PRICE
+  // balance=0.2 keeps getMaxBought≈5, so prices (0.038→0.018) stay above MIN_TRADE_PRICE
+  [POOL.LG_SELL_2]: makePool(POOL.LG_SELL_2, LG_ADDRESS, 'SELL', 0, 0.038, 0.2, []),
   // Little Ghosts – TRADE pool: 5 NFTs + BNB balance, 8% exponential delta
-  [POOL.LG_TRADE]: makePool(
-    POOL.LG_TRADE, LG_ADDRESS, 'BUY_AND_SELL', 0.048, 0.036, 1.2,
-    [16,17,18,19,20].map(makeLgAsset), 'EXPONENTIAL', 1.08,
+  [POOL.LG_TRADE_1]: makePool(
+    POOL.LG_TRADE_1,
+    LG_ADDRESS,
+    'BUY_AND_SELL',
+    0.048,
+    0.036,
+    1.2,
+    [16, 17, 18, 19, 20].map(makeLgAsset),
+    'EXPONENTIAL',
+    1.08
+  ),
+  // Little Ghosts – TRADE pool:
+  [POOL.LG_TRADE_2]: makePool(
+    POOL.LG_TRADE_2,
+    LG_ADDRESS,
+    'BUY_AND_SELL',
+    0.051,
+    0.04,
+    1.07,
+    [2816, 9017, 1218, 6319, 220, 6881].map(makeLgAsset),
+    'EXPONENTIAL',
+    1.13
+  ),
+  // Little Ghosts – TRADE pool:
+  [POOL.LG_TRADE_3]: makePool(
+    POOL.LG_TRADE_3,
+    LG_ADDRESS,
+    'BUY_AND_SELL',
+    0.044,
+    0.04,
+    1.4,
+    [7862, 9234, 8121, 9876, 333, 444].map(makeLgAsset),
+    'EXPONENTIAL',
+    1.13
+  ),
+  // Little Ghosts – TRADE pool:
+  [POOL.LG_TRADE_4]: makePool(
+    POOL.LG_TRADE_4,
+    LG_ADDRESS,
+    'BUY_AND_SELL',
+    0.054,
+    0.034,
+    1.27,
+    [5555, 6736, 1444, 7774, 855, 5363].map(makeLgAsset),
+    'LINEAR',
+    0.003
   ),
   // Ecto Skeletons – BUY pool: 6 NFTs at 0.13 BNB
-  [POOL.ES_BUY_1]: makePool(
-    POOL.ES_BUY_1, ES_ADDRESS, 'BUY', 0.13, 0, 0,
-    [1,9,21,42,100,221].map(makeEsAsset),
-  ),
+  [POOL.ES_BUY_1]: makePool(POOL.ES_BUY_1, ES_ADDRESS, 'BUY', 0.13, 0, 0, [1, 9, 21, 42, 100, 221].map(makeEsAsset)),
   // Ecto Skeletons – SELL pool
-  [POOL.ES_SELL_1]: makePool(
-    POOL.ES_SELL_1, ES_ADDRESS, 'SELL', 0, 0.10, 1.8,
-    [],
-  ),
+  [POOL.ES_SELL_1]: makePool(POOL.ES_SELL_1, ES_ADDRESS, 'SELL', 0, 0.1, 1.8, []),
   // Pancake Squad – BUY pool: 5 NFTs at 0.88 BNB
-  [POOL.PS_BUY_1]: makePool(
-    POOL.PS_BUY_1, PS_ADDRESS, 'BUY', 0.88, 0, 0,
-    [0,1,2,3,4].map(makePsAsset),
-  ),
+  [POOL.PS_BUY_1]: makePool(POOL.PS_BUY_1, PS_ADDRESS, 'BUY', 0.88, 0, 0, [0, 1, 2, 3, 4].map(makePsAsset)),
   // Pancake Squad – SELL pool
-  [POOL.PS_SELL_1]: makePool(
-    POOL.PS_SELL_1, PS_ADDRESS, 'SELL', 0, 0.75, 8.5,
-    [],
-  ),
+  [POOL.PS_SELL_1]: makePool(POOL.PS_SELL_1, PS_ADDRESS, 'SELL', 0, 0.75, 8.5, []),
 }
 
 // Pools grouped by collection
 export const POOLS_BY_COLLECTION: Record<string, any[]> = {
-  [LG_ADDRESS]: [POOLS[POOL.LG_BUY_1], POOLS[POOL.LG_BUY_2], POOLS[POOL.LG_SELL_1], POOLS[POOL.LG_TRADE]],
+  [LG_ADDRESS]: [
+    POOLS[POOL.LG_BUY_1],
+    POOLS[POOL.LG_BUY_2],
+    POOLS[POOL.LG_BUY_3],
+    POOLS[POOL.LG_BUY_4],
+    POOLS[POOL.LG_SELL_1],
+    POOLS[POOL.LG_SELL_2],
+    POOLS[POOL.LG_TRADE_1],
+    POOLS[POOL.LG_TRADE_2],
+    POOLS[POOL.LG_TRADE_3],
+    POOLS[POOL.LG_TRADE_4],
+  ],
   [ES_ADDRESS]: [POOLS[POOL.ES_BUY_1], POOLS[POOL.ES_SELL_1]],
   [PS_ADDRESS]: [POOLS[POOL.PS_BUY_1], POOLS[POOL.PS_SELL_1]],
 }
@@ -261,7 +273,7 @@ const makeCollectionStats = (
   balanceBnb: number,
   nftBalance: number,
   nftVolumeAllTime: number,
-  volumeAllTimeBnb: number,
+  volumeAllTimeBnb: number
 ) => ({
   balanceNBT: toWei(balanceBnb),
   collectionAddress: address,
@@ -279,20 +291,18 @@ const makeCollectionStats = (
 })
 
 export const COLLECTION_STATS: Record<string, any> = {
-  [LG_ADDRESS]: makeCollectionStats(
-    LG_ADDRESS, 'Little Ghosts',
-    lgImg(9990),
-    0.04, 0.033, 3.7, 20, 244, 50.98,
-  ),
-  [ES_ADDRESS]: makeCollectionStats(
-    ES_ADDRESS, 'Ecto Skeletons',
-    esImg(1),
-    0.12, 0.10, 1.8, 6, 11, 2.25,
-  ),
+  [LG_ADDRESS]: makeCollectionStats(LG_ADDRESS, 'Little Ghosts', lgImg(9990), 0.04, 0.033, 3.7, 20, 244, 50.98),
+  [ES_ADDRESS]: makeCollectionStats(ES_ADDRESS, 'Ecto Skeletons', esImg(1), 0.12, 0.1, 1.8, 6, 11, 2.25),
   [PS_ADDRESS]: makeCollectionStats(
-    PS_ADDRESS, 'Pancake Squad',
+    PS_ADDRESS,
+    'Pancake Squad',
     `${PS_CDN}/pancake-squad-1.png`,
-    0.88, 0.75, 8.5, 5, 202, 1726.85,
+    0.88,
+    0.75,
+    8.5,
+    5,
+    202,
+    1726.85
   ),
 }
 
@@ -302,42 +312,84 @@ export const COLLECTION_TRADES = [
     address: LG_ADDRESS,
     name: 'Little Ghosts',
     avatar: lgImg(9990),
-    volumeBNB: 183.4,    volumeUSD: 88641,
+    volumeBNB: 183.4,
+    volumeUSD: 88641,
     trades: 1284,
-    volumeBNB_last24h: 1.2,   volumeUSD_last24h: 580,   trades_last24h: 8,
-    volumeBNB_7d: 8.4,        volumeUSD_7d: 4062,       trades_7d: 56,
-    volumeBNB_last7d: 8.4,    volumeUSD_last7d: 4062,   trades_last7d: 56,
-    volumeBNB_30d: 50.98,     volumeUSD_30d: 24634,     trades_30d: 244,
-    volumeBNB_last30d: 50.98, volumeUSD_last30d: 24634, trades_last30d: 244,
-    holders: 1301,  holders_24h: 0,  holders_7d: -3,  holders_30d: -12,
+    volumeBNB_last24h: 1.2,
+    volumeUSD_last24h: 580,
+    trades_last24h: 8,
+    volumeBNB_7d: 8.4,
+    volumeUSD_7d: 4062,
+    trades_7d: 56,
+    volumeBNB_last7d: 8.4,
+    volumeUSD_last7d: 4062,
+    trades_last7d: 56,
+    volumeBNB_30d: 50.98,
+    volumeUSD_30d: 24634,
+    trades_30d: 244,
+    volumeBNB_last30d: 50.98,
+    volumeUSD_last30d: 24634,
+    trades_last30d: 244,
+    holders: 1301,
+    holders_24h: 0,
+    holders_7d: -3,
+    holders_30d: -12,
     status: 'default',
   },
   {
     address: ES_ADDRESS,
     name: 'Ecto Skeletons',
     avatar: esImg(1),
-    volumeBNB: 12.8,    volumeUSD: 6186,
+    volumeBNB: 12.8,
+    volumeUSD: 6186,
     trades: 47,
-    volumeBNB_last24h: 0.12,  volumeUSD_last24h: 58,    trades_last24h: 1,
-    volumeBNB_7d: 0.8,        volumeUSD_7d: 387,        trades_7d: 4,
-    volumeBNB_last7d: 0.8,    volumeUSD_last7d: 387,    trades_last7d: 4,
-    volumeBNB_30d: 2.25,      volumeUSD_30d: 1088,      trades_30d: 11,
-    volumeBNB_last30d: 2.25,  volumeUSD_last30d: 1088,  trades_last30d: 11,
-    holders: 408,  holders_24h: 0,  holders_7d: -1,  holders_30d: -8,
+    volumeBNB_last24h: 0.12,
+    volumeUSD_last24h: 58,
+    trades_last24h: 1,
+    volumeBNB_7d: 0.8,
+    volumeUSD_7d: 387,
+    trades_7d: 4,
+    volumeBNB_last7d: 0.8,
+    volumeUSD_last7d: 387,
+    trades_last7d: 4,
+    volumeBNB_30d: 2.25,
+    volumeUSD_30d: 1088,
+    trades_30d: 11,
+    volumeBNB_last30d: 2.25,
+    volumeUSD_last30d: 1088,
+    trades_last30d: 11,
+    holders: 408,
+    holders_24h: 0,
+    holders_7d: -1,
+    holders_30d: -8,
     status: 'default',
   },
   {
     address: PS_ADDRESS,
     name: 'Pancake Squad',
     avatar: `${PS_CDN}/pancake-squad-1.png`,
-    volumeBNB: 9840.2,   volumeUSD: 4756177,
+    volumeBNB: 9840.2,
+    volumeUSD: 4756177,
     trades: 8104,
-    volumeBNB_last24h: 12.4,  volumeUSD_last24h: 5993,  trades_last24h: 14,
-    volumeBNB_7d: 86.5,       volumeUSD_7d: 41823,      trades_7d: 95,
-    volumeBNB_last7d: 86.5,   volumeUSD_last7d: 41823,  trades_last7d: 95,
-    volumeBNB_30d: 1726.85,   volumeUSD_30d: 834768,    trades_30d: 202,
-    volumeBNB_last30d: 1726.85, volumeUSD_last30d: 834768, trades_last30d: 202,
-    holders: 4981, holders_24h: 2, holders_7d: 15, holders_30d: 42,
+    volumeBNB_last24h: 12.4,
+    volumeUSD_last24h: 5993,
+    trades_last24h: 14,
+    volumeBNB_7d: 86.5,
+    volumeUSD_7d: 41823,
+    trades_7d: 95,
+    volumeBNB_last7d: 86.5,
+    volumeUSD_last7d: 41823,
+    trades_last7d: 95,
+    volumeBNB_30d: 1726.85,
+    volumeUSD_30d: 834768,
+    trades_30d: 202,
+    volumeBNB_last30d: 1726.85,
+    volumeUSD_last30d: 834768,
+    trades_last30d: 202,
+    holders: 4981,
+    holders_24h: 2,
+    holders_7d: 15,
+    holders_30d: 42,
     status: 'default',
   },
 ]
@@ -385,20 +437,13 @@ export const COLLECTION_DETAILS: Record<string, any> = {
 // Returns the compact "short" response the frontend parses for traits + image.
 export function getLgNftShort(tokenId: string | number) {
   const id = Number(tokenId)
-  const tokenEntry = LG_TOKENS.find(([tid]) => tid === id)
-  const traitIndices = tokenEntry ? tokenEntry[1] : [0, 8, 8, 22, 10, 18, 10] // fallback
-
+  const attributes: LgAttribute[] = _lgByTokenId.get(id) ?? []
   return {
     address: LG_ADDRESS,
     name: `LittleGhosts #${id}`,
-    metadataIds: [{
-      address: LG_ADDRESS,
-      metadataIds: [{ key: '0', values: [traitIndices.join(',')] }],
-    }],
-    traits: LG_TRAIT_TYPES,
-    traitValues: LG_TRAIT_VALUES,
+    metadata: { attributes },
     imageURL: lgImg(id),
-    rawData: false,
+    rawData: true,
   }
 }
 
@@ -460,7 +505,7 @@ const makeSwapEvent = (
   poolAddress: string,
   tokenId: number,
   priceBnb: number,
-  minutesAgo: number,
+  minutesAgo: number
 ) => ({
   blockHash: `0xblock${i.toString(16).padStart(8, '0')}`,
   blockNumber: 28000000 + i,
@@ -489,27 +534,27 @@ const makeSwapEvent = (
 
 export const POOL_EVENTS: Record<string, any[]> = {
   [LG_ADDRESS]: [
-    makeSwapEvent(1,  LG_ADDRESS, POOL.LG_BUY_1, 0,  0.041, 15),
-    makeSwapEvent(2,  LG_ADDRESS, POOL.LG_BUY_1, 5,  0.041, 45),
-    makeSwapEvent(3,  LG_ADDRESS, POOL.LG_BUY_2, 10, 0.055, 90),
-    makeSwapEvent(4,  LG_ADDRESS, POOL.LG_BUY_2, 13, 0.055, 180),
-    makeSwapEvent(5,  LG_ADDRESS, POOL.LG_TRADE, 16, 0.048, 320),
-    makeSwapEvent(6,  LG_ADDRESS, POOL.LG_BUY_1, 2,  0.042, 500),
-    makeSwapEvent(7,  LG_ADDRESS, POOL.LG_BUY_2, 11, 0.056, 720),
-    makeSwapEvent(8,  LG_ADDRESS, POOL.LG_BUY_1, 4,  0.040, 1080),
-    makeSwapEvent(9,  LG_ADDRESS, POOL.LG_TRADE, 18, 0.049, 1440),
+    makeSwapEvent(1, LG_ADDRESS, POOL.LG_BUY_1, 0, 0.041, 15),
+    makeSwapEvent(2, LG_ADDRESS, POOL.LG_BUY_1, 5, 0.041, 45),
+    makeSwapEvent(3, LG_ADDRESS, POOL.LG_BUY_2, 10, 0.055, 90),
+    makeSwapEvent(4, LG_ADDRESS, POOL.LG_BUY_2, 13, 0.055, 180),
+    makeSwapEvent(5, LG_ADDRESS, POOL.LG_TRADE_1, 16, 0.048, 320),
+    makeSwapEvent(6, LG_ADDRESS, POOL.LG_BUY_1, 2, 0.042, 500),
+    makeSwapEvent(7, LG_ADDRESS, POOL.LG_BUY_2, 11, 0.056, 720),
+    makeSwapEvent(8, LG_ADDRESS, POOL.LG_BUY_1, 4, 0.04, 1080),
+    makeSwapEvent(9, LG_ADDRESS, POOL.LG_TRADE_2, 18, 0.049, 1440),
     makeSwapEvent(10, LG_ADDRESS, POOL.LG_BUY_2, 12, 0.055, 2160),
   ],
   [ES_ADDRESS]: [
-    makeSwapEvent(20, ES_ADDRESS, POOL.ES_BUY_1, 1,   0.13, 30),
-    makeSwapEvent(21, ES_ADDRESS, POOL.ES_BUY_1, 9,   0.13, 240),
-    makeSwapEvent(22, ES_ADDRESS, POOL.ES_BUY_1, 21,  0.14, 720),
-    makeSwapEvent(23, ES_ADDRESS, POOL.ES_BUY_1, 42,  0.13, 1440),
+    makeSwapEvent(20, ES_ADDRESS, POOL.ES_BUY_1, 1, 0.13, 30),
+    makeSwapEvent(21, ES_ADDRESS, POOL.ES_BUY_1, 9, 0.13, 240),
+    makeSwapEvent(22, ES_ADDRESS, POOL.ES_BUY_1, 21, 0.14, 720),
+    makeSwapEvent(23, ES_ADDRESS, POOL.ES_BUY_1, 42, 0.13, 1440),
   ],
   [PS_ADDRESS]: [
-    makeSwapEvent(30, PS_ADDRESS, POOL.PS_BUY_1, 0,  0.89, 60),
-    makeSwapEvent(31, PS_ADDRESS, POOL.PS_BUY_1, 1,  0.88, 300),
-    makeSwapEvent(32, PS_ADDRESS, POOL.PS_BUY_1, 2,  0.90, 900),
+    makeSwapEvent(30, PS_ADDRESS, POOL.PS_BUY_1, 0, 0.89, 60),
+    makeSwapEvent(31, PS_ADDRESS, POOL.PS_BUY_1, 1, 0.88, 300),
+    makeSwapEvent(32, PS_ADDRESS, POOL.PS_BUY_1, 2, 0.9, 900),
   ],
 }
 
